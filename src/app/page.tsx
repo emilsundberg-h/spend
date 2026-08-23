@@ -1,0 +1,84 @@
+"use client";
+
+import Link from "next/link";
+import { expensesForMonth, totalOf } from "@/lib/aggregate";
+import { formatMonth, formatRelativeDay, kr } from "@/lib/format";
+import { useExpenses } from "@/lib/expenses-context";
+import { nameFor } from "@/lib/members";
+import { Card } from "@/components/ui/card";
+import { InfoBadge } from "@/components/ui/info-badge";
+
+const RECENT_COUNT = 6;
+
+export default function HomePage() {
+  const { expenses, members, ready } = useExpenses();
+  const now = new Date();
+  const monthExpenses = expensesForMonth(expenses, now);
+  const total = totalOf(monthExpenses);
+  const recent = expenses.slice(0, RECENT_COUNT);
+
+  return (
+    <div className="flex min-h-screen flex-col px-6 pb-32 pt-8">
+      <header className="flex items-center justify-between">
+        <span className="font-display text-lg font-semibold text-foreground">Utgifter</span>
+        <Link href="/settings" aria-label="Inställningar" className="text-xl text-muted">
+          ⚙
+        </Link>
+      </header>
+
+      <Card className="mt-5">
+        <div className="flex items-baseline justify-between">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">{formatMonth(now)}</span>
+          <Link href="/summary" className="text-sm font-semibold text-accent">
+            Summering
+          </Link>
+        </div>
+        <div className="mt-2.5 flex items-baseline gap-2">
+          <span className="font-mono text-5xl font-bold tracking-tight tabular-nums text-foreground">
+            {kr(total)}
+          </span>
+          <span className="text-lg font-semibold text-muted">kr</span>
+        </div>
+        <div className="mt-1 text-sm text-muted-2">{monthExpenses.length} köp tillsammans</div>
+      </Card>
+
+      <div className="mt-7 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Senaste köpen</div>
+
+      <div className="mt-2.5 flex flex-1 flex-col gap-2">
+        {!ready ? null : recent.length === 0 ? (
+          <p className="mt-6 text-sm leading-relaxed text-muted-2">
+            Inga köp ännu. Tryck på plusset nedan så fort ni handlat något.
+          </p>
+        ) : (
+          recent.map((e) => (
+            <Link
+              key={e.id}
+              href={`/summary/${encodeURIComponent(e.category)}`}
+              className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5"
+            >
+              <span className="h-2 w-2 flex-none rounded-full bg-accent" />
+              <span className="min-w-0 flex-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="truncate text-base font-semibold text-foreground">{e.category}</span>
+                  {e.note ? <InfoBadge /> : null}
+                </span>
+                <span className="mt-0.5 block text-[13px] text-muted-2">
+                  {nameFor(members, e.payerId)} · {formatRelativeDay(e.createdAt)}
+                </span>
+              </span>
+              <span className="font-mono text-lg font-semibold tabular-nums text-foreground">{kr(e.amount)}</span>
+            </Link>
+          ))
+        )}
+      </div>
+
+      <Link
+        href="/new"
+        aria-label="Nytt köp"
+        className="fixed inset-x-0 bottom-8 mx-auto flex h-[72px] w-[72px] items-center justify-center rounded-full bg-accent text-4xl font-light text-accent-foreground shadow-lg shadow-accent/40"
+      >
+        +
+      </Link>
+    </div>
+  );
+}

@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+/* next-themes toggles a `.dark` class on <html> — tell Tailwind v4 to key `dark:` off that
+   instead of `prefers-color-scheme`, so the in-app theme switch actually takes effect. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: oklch(0.97 0.006 250);
+  --surface: oklch(0.995 0.003 250);
+  --surface-2: oklch(0.93 0.01 250);
+  --foreground: oklch(0.22 0.01 250);
+  --muted: oklch(0.5 0.02 250);
+  --muted-2: oklch(0.6 0.02 250);
+  --border: oklch(0.88 0.01 250);
+  --accent: oklch(0.55 0.14 200);
+  --accent-foreground: oklch(0.99 0.005 250);
+  --accent-soft: oklch(0.88 0.055 200);
+  --accent-soft-foreground: oklch(0.34 0.09 205);
+  --chip-bg: oklch(0.93 0.008 250);
+  --chip-foreground: oklch(0.42 0.02 250);
+}
+
+.dark {
+  --background: oklch(0.19 0.014 250);
+  --surface: oklch(0.24 0.018 250);
+  --surface-2: oklch(0.245 0.018 250);
+  --foreground: oklch(0.97 0.005 250);
+  --muted: oklch(0.66 0.03 250);
+  --muted-2: oklch(0.6 0.03 250);
+  --border: oklch(0.32 0.02 250);
+  --accent: oklch(0.78 0.14 200);
+  --accent-foreground: oklch(0.17 0.02 220);
+  --accent-soft: oklch(0.34 0.055 210);
+  --accent-soft-foreground: oklch(0.86 0.1 200);
+  --chip-bg: oklch(0.27 0.018 250);
+  --chip-foreground: oklch(0.7 0.03 250);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-muted-2: var(--muted-2);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-soft-foreground: var(--accent-soft-foreground);
+  --color-chip-bg: var(--chip-bg);
+  --color-chip-foreground: var(--chip-foreground);
+
+  --font-sans: var(--font-libre-franklin);
+  --font-display: var(--font-bricolage);
+  --font-mono: var(--font-jetbrains-mono);
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: var(--font-sans);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
