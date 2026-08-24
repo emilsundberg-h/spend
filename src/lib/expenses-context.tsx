@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "./supabase/client";
 import {
   getMyHouseholdId,
@@ -27,6 +27,8 @@ interface ExpensesContextValue {
   ready: boolean;
   addExpense: (input: NewExpenseInput) => Promise<void>;
   setMyDisplayName: (name: string) => Promise<void>;
+  /** Re-runs the initial fetch on demand — used by pull-to-refresh. */
+  refresh: () => Promise<void>;
 }
 
 const ExpensesContext = createContext<ExpensesContextValue | null>(null);
@@ -38,36 +40,43 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
   const [members, setMembers] = useState<HouseholdMember[]>([]);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
+  // The provider sits at the root layout and effectively never unmounts,
+  // but this still guards against setting state after a fast unmount
+  // (React 18 StrictMode double-invoke, navigating away mid-fetch, etc).
+  const mounted = useRef(true);
+  useEffect(
+    () => () => {
+      mounted.current = false;
+    },
+    [],
+  );
+
+  const load = useCallback(async () => {
     const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user || !mounted.current) return;
+    setUserId(user.id);
 
-    async function load() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user || cancelled) return;
-      setUserId(user.id);
-
-      const hid = await getMyHouseholdId();
-      if (!hid || cancelled) {
-        setReady(true);
-        return;
-      }
-      setHouseholdId(hid);
-
-      const [loadedExpenses, loadedMembers] = await Promise.all([listExpenses(hid), listHouseholdMembers(hid)]);
-      if (cancelled) return;
-      setExpenses(loadedExpenses);
-      setMembers(loadedMembers);
+    const hid = await getMyHouseholdId();
+    if (!mounted.current) return;
+    if (!hid) {
       setReady(true);
+      return;
     }
+    setHouseholdId(hid);
 
-    load();
-    return () => {
-      cancelled = true;
-    };
+    const [loadedExpenses, loadedMembers] = await Promise.all([listExpenses(hid), listHouseholdMembers(hid)]);
+    if (!mounted.current) return;
+    setExpenses(loadedExpenses);
+    setMembers(loadedMembers);
+    setReady(true);
   }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   // Live-updates the list when the other person adds a purchase.
   useEffect(() => {
@@ -90,7 +99,9 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ExpensesContext.Provider value={{ expenses, members, userId, ready, addExpense, setMyDisplayName }}>
+    <ExpensesContext.Provider
+      value={{ expenses, members, userId, ready, addExpense, setMyDisplayName, refresh: load }}
+    >
       {children}
     </ExpensesContext.Provider>
   );

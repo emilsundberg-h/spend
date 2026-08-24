@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, JetBrains_Mono, Libre_Franklin } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RegisterServiceWorker } from "@/components/register-service-worker";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import { ExpensesProvider } from "@/lib/expenses-context";
 import "./globals.css";
 
@@ -53,7 +54,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <ExpensesProvider>
-            <div className="mx-auto min-h-screen w-full max-w-[480px] bg-background">{children}</div>
+            <div className="mx-auto min-h-screen w-full max-w-[480px] bg-background">
+              <PullToRefresh>{children}</PullToRefresh>
+            </div>
           </ExpensesProvider>
         </ThemeProvider>
         <RegisterServiceWorker />
