@@ -3,12 +3,15 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import { createClient } from "./supabase/client";
 import {
+  deleteExpense,
   getMyHouseholdId,
   insertExpense,
   listExpenses,
   listHouseholdMembers,
-  subscribeToNewExpenses,
+  subscribeToExpenseChanges,
+  updateExpense,
   updateMyDisplayName,
+  type UpdateExpenseInput,
 } from "./supabase/data";
 import type { Expense, HouseholdMember } from "./types";
 
@@ -35,6 +38,14 @@ function insertSorted(list: Expense[], entry: Expense): Expense[] {
   return [...list.slice(0, idx), entry, ...list.slice(idx)];
 }
 
+/** Same as insertSorted, but for replacing an existing entry (its date may have changed). */
+function replaceSorted(list: Expense[], entry: Expense): Expense[] {
+  return insertSorted(
+    list.filter((e) => e.id !== entry.id),
+    entry,
+  );
+}
+
 interface ExpensesContextValue {
   expenses: Expense[];
   members: HouseholdMember[];
@@ -42,6 +53,8 @@ interface ExpensesContextValue {
   /** False until the initial Supabase fetch (household + expenses + members) has finished. */
   ready: boolean;
   addExpense: (input: NewExpenseInput) => Promise<void>;
+  editExpense: (input: UpdateExpenseInput) => Promise<void>;
+  removeExpense: (id: string) => Promise<void>;
   setMyDisplayName: (name: string) => Promise<void>;
   /** Re-runs the initial fetch on demand — used by pull-to-refresh. */
   refresh: () => Promise<void>;
@@ -94,11 +107,13 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
     load();
   }, [load]);
 
-  // Live-updates the list when the other person adds a purchase.
+  // Live-updates the list when the other person adds, edits, or deletes a purchase.
   useEffect(() => {
     if (!householdId) return;
-    return subscribeToNewExpenses(householdId, (expense) => {
-      setExpenses((prev) => insertSorted(prev, expense));
+    return subscribeToExpenseChanges(householdId, {
+      onInsert: (expense) => setExpenses((prev) => insertSorted(prev, expense)),
+      onUpdate: (expense) => setExpenses((prev) => replaceSorted(prev, expense)),
+      onDelete: (id) => setExpenses((prev) => prev.filter((e) => e.id !== id)),
     });
   }, [householdId]);
 
@@ -106,6 +121,16 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
     if (!householdId) throw new Error("Inget hushåll kopplat ännu");
     const entry = await insertExpense({ householdId, ...input });
     setExpenses((prev) => insertSorted(prev, entry));
+  }
+
+  async function editExpense(input: UpdateExpenseInput) {
+    const entry = await updateExpense(input);
+    setExpenses((prev) => replaceSorted(prev, entry));
+  }
+
+  async function removeExpense(id: string) {
+    await deleteExpense(id);
+    setExpenses((prev) => prev.filter((e) => e.id !== id));
   }
 
   async function setMyDisplayName(name: string) {
@@ -116,7 +141,17 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
 
   return (
     <ExpensesContext.Provider
-      value={{ expenses, members, userId, ready, addExpense, setMyDisplayName, refresh: load }}
+      value={{
+        expenses,
+        members,
+        userId,
+        ready,
+        addExpense,
+        editExpense,
+        removeExpense,
+        setMyDisplayName,
+        refresh: load,
+      }}
     >
       {children}
     </ExpensesContext.Provider>

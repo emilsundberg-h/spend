@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { expensesForMonth, totalOf } from "@/lib/aggregate";
 import { formatMonth, formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
@@ -8,10 +9,17 @@ import { nameFor } from "@/lib/members";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { Card } from "@/components/ui/card";
 import { InfoBadge } from "@/components/ui/info-badge";
+import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { TagBadge } from "@/components/ui/tag-badge";
 
 export default function HomePage() {
-  const { expenses, members, ready } = useExpenses();
+  const router = useRouter();
+  const { expenses, members, ready, removeExpense } = useExpenses();
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Ta bort det här köpet?")) return;
+    await removeExpense(id);
+  }
   const now = new Date();
   const monthExpenses = expensesForMonth(expenses, now);
   const total = totalOf(monthExpenses);
@@ -55,24 +63,29 @@ export default function HomePage() {
           </p>
         ) : (
           recent.map((e) => (
-            <Link
+            <SwipeableRow
               key={e.id}
-              href={`/summary/${encodeURIComponent(e.category)}`}
-              className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5"
+              onEdit={() => router.push(`/expense/${e.id}/edit`)}
+              onDelete={() => handleDelete(e.id)}
             >
-              <span className="h-2 w-2 flex-none rounded-full bg-accent" />
-              <span className="min-w-0 flex-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="truncate text-base font-semibold text-foreground">{e.category}</span>
-                  {e.note ? <InfoBadge /> : null}
-                  {e.tag ? <TagBadge tag={e.tag} /> : null}
+              <Link
+                href={`/summary/${encodeURIComponent(e.category)}`}
+                className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5"
+              >
+                <span className="h-2 w-2 flex-none rounded-full bg-accent" />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-1.5">
+                    <span className="truncate text-base font-semibold text-foreground">{e.category}</span>
+                    {e.note ? <InfoBadge /> : null}
+                    {e.tag ? <TagBadge tag={e.tag} /> : null}
+                  </span>
+                  <span className="mt-0.5 block text-[13px] text-muted-2">
+                    {nameFor(members, e.payerId)} · {formatRelativeDay(e.date)}
+                  </span>
                 </span>
-                <span className="mt-0.5 block text-[13px] text-muted-2">
-                  {nameFor(members, e.payerId)} · {formatRelativeDay(e.date)}
-                </span>
-              </span>
-              <span className="font-mono text-lg font-semibold tabular-nums text-foreground">{kr(e.amount)}</span>
-            </Link>
+                <span className="font-mono text-lg font-semibold tabular-nums text-foreground">{kr(e.amount)}</span>
+              </Link>
+            </SwipeableRow>
           ))
         )}
       </div>

@@ -1,11 +1,13 @@
 "use client";
 
 import { use } from "react";
+import { useRouter } from "next/navigation";
 import { formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
 import { BackLink } from "@/components/ui/back-link";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
+import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { TagBadge } from "@/components/ui/tag-badge";
 
 export default function CategoryDetailPage(props: PageProps<"/summary/[category]">) {
@@ -13,7 +15,13 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
   // so decode before using the value for display or matching.
   const { category: rawCategory } = use(props.params);
   const category = decodeURIComponent(rawCategory);
-  const { expenses, members, ready } = useExpenses();
+  const router = useRouter();
+  const { expenses, members, ready, removeExpense } = useExpenses();
+
+  async function handleDelete(id: string) {
+    if (!window.confirm("Ta bort det här köpet?")) return;
+    await removeExpense(id);
+  }
 
   const items = expenses
     .filter((e) => e.category === category)
@@ -35,24 +43,30 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
           <p className="text-sm leading-relaxed text-muted-2">Inga köp i den här kategorin än.</p>
         ) : (
           items.map((e) => (
-            <div key={e.id} className="rounded-2xl bg-surface px-4 py-3.5">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="flex min-w-0 items-center gap-1.5 text-[15px] text-muted-2">
-                  <span className="truncate">
-                    {nameFor(members, e.payerId)} · {formatRelativeDay(e.date)}
+            <SwipeableRow
+              key={e.id}
+              onEdit={() => router.push(`/expense/${e.id}/edit`)}
+              onDelete={() => handleDelete(e.id)}
+            >
+              <div className="rounded-2xl bg-surface px-4 py-3.5">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="flex min-w-0 items-center gap-1.5 text-[15px] text-muted-2">
+                    <span className="truncate">
+                      {nameFor(members, e.payerId)} · {formatRelativeDay(e.date)}
+                    </span>
+                    {e.tag ? <TagBadge tag={e.tag} /> : null}
                   </span>
-                  {e.tag ? <TagBadge tag={e.tag} /> : null}
-                </span>
-                <span className="flex-none font-mono text-[17px] font-semibold tabular-nums text-foreground">
-                  {kr(e.amount)} kr
-                </span>
+                  <span className="flex-none font-mono text-[17px] font-semibold tabular-nums text-foreground">
+                    {kr(e.amount)} kr
+                  </span>
+                </div>
+                {e.note ? (
+                  <p className="mt-2 border-l-2 border-accent pl-3 text-sm leading-relaxed text-foreground/80">
+                    {e.note}
+                  </p>
+                ) : null}
               </div>
-              {e.note ? (
-                <p className="mt-2 border-l-2 border-accent pl-3 text-sm leading-relaxed text-foreground/80">
-                  {e.note}
-                </p>
-              ) : null}
-            </div>
+            </SwipeableRow>
           ))
         )}
       </div>

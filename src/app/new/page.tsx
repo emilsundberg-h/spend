@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORIES } from "@/lib/categories";
+import { CATEGORIES, customCategoriesFrom } from "@/lib/categories";
 import { useExpenses } from "@/lib/expenses-context";
 import { BackLink } from "@/components/ui/back-link";
 import { Tile } from "@/components/ui/tile";
@@ -15,17 +15,9 @@ export default function NewExpensePage() {
   const [customizing, setCustomizing] = useState(false);
   const [customName, setCustomName] = useState("");
 
-  // Categories typed in before via "Övrigt" that aren't one of the fixed
-  // tiles — surfaced so picking the same one again doesn't mean retyping it
-  // (and risking a typo that'd split it into a second, near-identical group).
-  const customCategories = useMemo(() => {
-    const known = new Set<string>(CATEGORIES);
-    const extra = new Set<string>();
-    for (const e of expenses) {
-      if (!known.has(e.category)) extra.add(e.category);
-    }
-    return [...extra].sort((a, b) => a.localeCompare(b, "sv"));
-  }, [expenses]);
+  // Surfaced so picking the same custom category again doesn't mean
+  // retyping it (and risking a typo that'd split it into a near-duplicate).
+  const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
 
   function goToCategory(category: string) {
     router.push(`/new/${encodeURIComponent(category)}`);

@@ -94,6 +94,39 @@ export async function insertExpense(input: NewExpenseInput): Promise<Expense> {
   return fromRow(data as ExpenseRow);
 }
 
+export interface UpdateExpenseInput {
+  id: string;
+  category: string;
+  amount: number;
+  payerId: string;
+  note?: string;
+  tag?: string;
+  date: string;
+}
+
+export async function updateExpense(input: UpdateExpenseInput): Promise<Expense> {
+  const { data, error } = await db()
+    .from("expenses")
+    .update({
+      category: input.category,
+      amount: input.amount,
+      payer_id: input.payerId,
+      note: input.note ?? null,
+      tag: input.tag ?? null,
+      expense_date: input.date,
+    })
+    .eq("id", input.id)
+    .select(EXPENSE_COLUMNS)
+    .single();
+  if (error) throw error;
+  return fromRow(data as ExpenseRow);
+}
+
+export async function deleteExpense(id: string): Promise<void> {
+  const { error } = await db().from("expenses").delete().eq("id", id);
+  if (error) throw error;
+}
+
 interface MemberRow {
   user_id: string;
   profiles: { display_name: string } | null;
@@ -114,13 +147,25 @@ export async function updateMyDisplayName(userId: string, name: string): Promise
   if (error) throw error;
 }
 
-/** Live-updates the list when either partner adds a purchase. Returns an unsubscribe function. */
-export function subscribeToNewExpenses(householdId: string, onInsert: (expense: Expense) => void): () => void {
+interface ExpenseChangeHandlers {
+  onInsert: (expense: Expense) => void;
+  onUpdate: (expense: Expense) => void;
+  onDelete: (id: string) => void;
+}
+
+/** Live-updates the list when either partner adds, edits, or deletes a purchase. Returns an unsubscribe function. */
+export function subscribeToExpenseChanges(householdId: string, handlers: ExpenseChangeHandlers): () => void {
   return createAuthedChannel(`expenses-${householdId}`, (channel) => {
-    channel.on(
-      "postgres_changes",
-      { event: "INSERT", schema: SCHEMA, table: "expenses", filter: `household_id=eq.${householdId}` },
-      (payload) => onInsert(fromRow(payload.new as ExpenseRow)),
-    );
+    const filter = { schema: SCHEMA, table: "expenses", filter: `household_id=eq.${householdId}` } as const;
+    channel
+      .on("postgres_changes", { event: "INSERT", ...filter }, (payload) =>
+        handlers.onInsert(fromRow(payload.new as ExpenseRow)),
+      )
+      .on("postgres_changes", { event: "UPDATE", ...filter }, (payload) =>
+        handlers.onUpdate(fromRow(payload.new as ExpenseRow)),
+      )
+      .on("postgres_changes", { event: "DELETE", ...filter }, (payload) =>
+        handlers.onDelete((payload.old as { id: string }).id),
+      );
   });
 }
