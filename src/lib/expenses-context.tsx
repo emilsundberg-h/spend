@@ -17,6 +17,22 @@ interface NewExpenseInput {
   amount: number;
   payerId: string;
   note?: string;
+  tag?: string;
+  /** ISO date (YYYY-MM-DD); defaults to today server-side if omitted. */
+  date?: string;
+}
+
+/**
+ * Inserts `entry` keeping the list sorted the same way listExpenses() orders
+ * it (purchase date desc, then insertion time desc). A plain unshift would
+ * be wrong now that a purchase's date is editable — backdating an entry
+ * must not put it above ones that actually happened more recently.
+ */
+function insertSorted(list: Expense[], entry: Expense): Expense[] {
+  if (list.some((e) => e.id === entry.id)) return list;
+  const idx = list.findIndex((e) => e.date < entry.date || (e.date === entry.date && e.createdAt < entry.createdAt));
+  if (idx === -1) return [...list, entry];
+  return [...list.slice(0, idx), entry, ...list.slice(idx)];
 }
 
 interface ExpensesContextValue {
@@ -82,14 +98,14 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!householdId) return;
     return subscribeToNewExpenses(householdId, (expense) => {
-      setExpenses((prev) => (prev.some((e) => e.id === expense.id) ? prev : [expense, ...prev]));
+      setExpenses((prev) => insertSorted(prev, expense));
     });
   }, [householdId]);
 
   async function addExpense(input: NewExpenseInput) {
     if (!householdId) throw new Error("Inget hushåll kopplat ännu");
     const entry = await insertExpense({ householdId, ...input });
-    setExpenses((prev) => (prev.some((e) => e.id === entry.id) ? prev : [entry, ...prev]));
+    setExpenses((prev) => insertSorted(prev, entry));
   }
 
   async function setMyDisplayName(name: string) {

@@ -3,7 +3,7 @@
 import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { kr } from "@/lib/format";
+import { kr, todayLocalISODate } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { BackLink } from "@/components/ui/back-link";
 import { Numpad } from "@/components/ui/numpad";
@@ -20,6 +20,8 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
   const { members, userId, ready, addExpense } = useExpenses();
   const [amt, setAmt] = useState("");
   const [payerId, setPayerId] = useState<string | null>(null);
+  const [date, setDate] = useState(todayLocalISODate);
+  const [tag, setTag] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
 
@@ -42,7 +44,14 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
   async function handleSave() {
     if (!canSave || !selectedPayerId || saving) return;
     setSaving(true);
-    await addExpense({ category, amount: amountNumber, payerId: selectedPayerId, note: note.trim() || undefined });
+    await addExpense({
+      category,
+      amount: amountNumber,
+      payerId: selectedPayerId,
+      note: note.trim() || undefined,
+      tag: tag.trim() || undefined,
+      date,
+    });
     router.push("/");
   }
 
@@ -59,6 +68,24 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
           <span className="text-2xl font-semibold text-muted">kr</span>
         </div>
         {ready ? <PayerChips members={members} value={selectedPayerId} onChange={setPayerId} /> : null}
+
+        <label className="flex h-12 w-full max-w-[280px] items-center justify-between rounded-2xl bg-surface-2 px-4">
+          <span className="text-sm font-semibold text-muted-2">Datum</span>
+          <input
+            type="date"
+            value={date}
+            max={todayLocalISODate()}
+            onChange={(e) => setDate(e.target.value || todayLocalISODate())}
+            className="bg-transparent text-sm font-semibold text-foreground outline-none [color-scheme:light] dark:[color-scheme:dark]"
+          />
+        </label>
+
+        <input
+          value={tag}
+          onChange={(e) => setTag(e.target.value)}
+          placeholder="Tagg, t.ex. resa (valfritt)"
+          className="h-12 w-full max-w-[280px] rounded-2xl bg-surface-2 px-4 text-center text-sm text-foreground outline-none placeholder:text-muted-2"
+        />
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}

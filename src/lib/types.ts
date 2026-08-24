@@ -10,6 +10,9 @@ export interface Expense {
   amount: number;
   payerId: string;
   note?: string;
-  /** ISO timestamp. */
+  tag?: string;
+  /** ISO date (YYYY-MM-DD) — the day the purchase happened, editable at entry time, defaults to today. */
+  date: string;
+  /** ISO timestamp — when the row was inserted. Only used to break ties between same-day entries. */
   createdAt: string;
 }

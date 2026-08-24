@@ -25,6 +25,8 @@ interface ExpenseRow {
   amount: number;
   payer_id: string;
   note: string | null;
+  tag: string | null;
+  expense_date: string;
   created_at: string;
 }
 
@@ -35,9 +37,13 @@ function fromRow(row: ExpenseRow): Expense {
     amount: row.amount,
     payerId: row.payer_id,
     note: row.note ?? undefined,
+    tag: row.tag ?? undefined,
+    date: row.expense_date,
     createdAt: row.created_at,
   };
 }
+
+const EXPENSE_COLUMNS = "id, category, amount, payer_id, note, tag, expense_date, created_at";
 
 /** The household the signed-in user belongs to, or null if not linked to one yet. */
 export async function getMyHouseholdId(): Promise<string | null> {
@@ -49,8 +55,11 @@ export async function getMyHouseholdId(): Promise<string | null> {
 export async function listExpenses(householdId: string): Promise<Expense[]> {
   const { data, error } = await db()
     .from("expenses")
-    .select("id, category, amount, payer_id, note, created_at")
+    .select(EXPENSE_COLUMNS)
     .eq("household_id", householdId)
+    // Purchase date first (the user-editable, backdatable field), insertion
+    // time only as a tiebreaker between entries logged for the same day.
+    .order("expense_date", { ascending: false })
     .order("created_at", { ascending: false });
   if (error) throw error;
   return (data as ExpenseRow[]).map(fromRow);
@@ -62,6 +71,9 @@ export interface NewExpenseInput {
   amount: number;
   payerId: string;
   note?: string;
+  tag?: string;
+  /** ISO date (YYYY-MM-DD); defaults to today server-side if omitted. */
+  date?: string;
 }
 
 export async function insertExpense(input: NewExpenseInput): Promise<Expense> {
@@ -73,8 +85,10 @@ export async function insertExpense(input: NewExpenseInput): Promise<Expense> {
       amount: input.amount,
       payer_id: input.payerId,
       note: input.note ?? null,
+      tag: input.tag ?? null,
+      ...(input.date ? { expense_date: input.date } : {}),
     })
-    .select("id, category, amount, payer_id, note, created_at")
+    .select(EXPENSE_COLUMNS)
     .single();
   if (error) throw error;
   return fromRow(data as ExpenseRow);

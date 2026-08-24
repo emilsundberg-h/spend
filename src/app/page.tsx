@@ -7,15 +7,16 @@ import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
 import { Card } from "@/components/ui/card";
 import { InfoBadge } from "@/components/ui/info-badge";
-
-const RECENT_COUNT = 6;
+import { TagBadge } from "@/components/ui/tag-badge";
 
 export default function HomePage() {
   const { expenses, members, ready } = useExpenses();
   const now = new Date();
   const monthExpenses = expensesForMonth(expenses, now);
   const total = totalOf(monthExpenses);
-  const recent = expenses.slice(0, RECENT_COUNT);
+  // Already sorted purchase-date desc (see listExpenses/insertSorted) — the
+  // whole month, not just a handful of the most recent entries.
+  const recent = monthExpenses;
 
   return (
     <div className="flex min-h-screen flex-col px-6 pb-32 pt-8">
@@ -61,9 +62,10 @@ export default function HomePage() {
                 <span className="flex items-center gap-1.5">
                   <span className="truncate text-base font-semibold text-foreground">{e.category}</span>
                   {e.note ? <InfoBadge /> : null}
+                  {e.tag ? <TagBadge tag={e.tag} /> : null}
                 </span>
                 <span className="mt-0.5 block text-[13px] text-muted-2">
-                  {nameFor(members, e.payerId)} · {formatRelativeDay(e.createdAt)}
+                  {nameFor(members, e.payerId)} · {formatRelativeDay(e.date)}
                 </span>
               </span>
               <span className="font-mono text-lg font-semibold tabular-nums text-foreground">{kr(e.amount)}</span>
