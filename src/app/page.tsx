@@ -5,6 +5,7 @@ import { expensesForMonth, totalOf } from "@/lib/aggregate";
 import { formatMonth, formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
+import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { Card } from "@/components/ui/card";
 import { InfoBadge } from "@/components/ui/info-badge";
 import { TagBadge } from "@/components/ui/tag-badge";
@@ -46,7 +47,9 @@ export default function HomePage() {
       <div className="mt-7 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Senaste köpen</div>
 
       <div className="mt-2.5 flex flex-1 flex-col gap-2">
-        {!ready ? null : recent.length === 0 ? (
+        {!ready ? (
+          <BanknoteLoader />
+        ) : recent.length === 0 ? (
           <p className="mt-6 text-sm leading-relaxed text-muted-2">
             Inga köp ännu. Tryck på plusset nedan så fort ni handlat något.
           </p>

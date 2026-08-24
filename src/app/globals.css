@@ -67,3 +67,49 @@ body {
   font-family: var(--font-sans);
   transition: background-color 0.2s ease, color 0.2s ease;
 }
+
+/* Loading state while a view waits on its first Supabase fetch — see
+   components/ui/banknote-loader.tsx. Fades the strip's edges so notes drift
+   in and out rather than popping, and sweeps left-to-right with a little
+   bob/tilt so it doesn't read as a mechanical progress bar. */
+@keyframes banknote-fly {
+  0% {
+    left: -12%;
+    opacity: 0;
+    transform: translateY(0) rotate(-10deg) scale(0.9);
+  }
+  10% {
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-8px) rotate(6deg) scale(1.05);
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 112%;
+    opacity: 0;
+    transform: translateY(0) rotate(-10deg) scale(0.9);
+  }
+}
+
+.banknote-loader {
+  -webkit-mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent);
+}
+
+.banknote-loader span[aria-hidden] {
+  position: absolute;
+  animation-name: banknote-fly;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .banknote-loader span[aria-hidden] {
+    animation: none;
+    left: 44%;
+    opacity: 0.5;
+  }
+}

@@ -5,6 +5,7 @@ import { formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
 import { BackLink } from "@/components/ui/back-link";
+import { BanknoteLoader } from "@/components/ui/banknote-loader";
 
 export default function TagDetailPage(props: PageProps<"/summary/tag/[tag]">) {
   // Tags can contain "/" and "&" like categories, so decode before use.
@@ -26,7 +27,9 @@ export default function TagDetailPage(props: PageProps<"/summary/tag/[tag]">) {
       </div>
 
       <div className="mt-5 flex flex-1 flex-col gap-2.5">
-        {ready && items.length === 0 ? (
+        {!ready ? (
+          <BanknoteLoader />
+        ) : items.length === 0 ? (
           <p className="text-sm leading-relaxed text-muted-2">Inga köp med den här taggen än.</p>
         ) : (
           items.map((e) => (

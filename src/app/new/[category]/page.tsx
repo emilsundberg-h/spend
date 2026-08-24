@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 import { kr, todayLocalISODate } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { BackLink } from "@/components/ui/back-link";
+import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { Numpad } from "@/components/ui/numpad";
 import { PayerChips } from "@/components/ui/payer-chips";
 
@@ -67,7 +68,11 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
           </span>
           <span className="text-2xl font-semibold text-muted">kr</span>
         </div>
-        {ready ? <PayerChips members={members} value={selectedPayerId} onChange={setPayerId} /> : null}
+        {ready ? (
+          <PayerChips members={members} value={selectedPayerId} onChange={setPayerId} />
+        ) : (
+          <BanknoteLoader compact />
+        )}
 
         <label className="flex h-12 w-full max-w-[280px] items-center justify-between rounded-2xl bg-surface-2 px-4">
           <span className="text-sm font-semibold text-muted-2">Datum</span>

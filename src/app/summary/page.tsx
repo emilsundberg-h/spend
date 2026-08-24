@@ -7,6 +7,7 @@ import { formatMonth, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { cn } from "@/lib/cn";
 import { BackLink } from "@/components/ui/back-link";
+import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { ProgressBar } from "@/components/ui/progress-bar";
 
 type View = "category" | "tag";
@@ -73,7 +74,9 @@ export default function SummaryPage() {
       </div>
 
       <div className="mt-5 flex flex-1 flex-col gap-2.5">
-        {ready && rows.length === 0 ? (
+        {!ready ? (
+          <BanknoteLoader />
+        ) : rows.length === 0 ? (
           <p className="text-sm leading-relaxed text-muted-2">{emptyMessage}</p>
         ) : (
           rows.map((r) => (

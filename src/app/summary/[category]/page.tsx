@@ -5,6 +5,7 @@ import { formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
 import { BackLink } from "@/components/ui/back-link";
+import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { TagBadge } from "@/components/ui/tag-badge";
 
 export default function CategoryDetailPage(props: PageProps<"/summary/[category]">) {
@@ -28,7 +29,9 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
       </div>
 
       <div className="mt-5 flex flex-1 flex-col gap-2.5">
-        {ready && items.length === 0 ? (
+        {!ready ? (
+          <BanknoteLoader />
+        ) : items.length === 0 ? (
           <p className="text-sm leading-relaxed text-muted-2">Inga köp i den här kategorin än.</p>
         ) : (
           items.map((e) => (
