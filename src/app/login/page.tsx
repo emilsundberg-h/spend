@@ -39,7 +39,7 @@ export default function LoginPage() {
     setResetting(true);
     const supabase = createClient();
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/confirm?type=recovery&next=/reset-password`,
+      redirectTo: `${window.location.origin}/auth/confirm`,
     });
     setResetting(false);
     // Always show the same confirmation, whether or not the email exists —

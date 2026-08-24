@@ -7,13 +7,15 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const tokenHash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/";
 
   if (tokenHash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
     if (!error) {
-      return NextResponse.redirect(new URL(next, request.url));
+      // Password recovery needs to land on the "choose a new password" screen;
+      // everything else (magic link, etc.) just goes to the app.
+      const destination = type === "recovery" ? "/reset-password" : "/";
+      return NextResponse.redirect(new URL(destination, request.url));
     }
   }
 
