@@ -83,7 +83,7 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
         <input
           value={tag}
           onChange={(e) => setTag(e.target.value)}
-          placeholder="Tagg, t.ex. resa (valfritt)"
+          placeholder="Tagg, t.ex. onödigt eller lyx (valfritt)"
           className="h-12 w-full max-w-[280px] rounded-2xl bg-surface-2 px-4 text-center text-sm text-foreground outline-none placeholder:text-muted-2"
         />
         <input
