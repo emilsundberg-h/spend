@@ -69,47 +69,39 @@ body {
 }
 
 /* Loading state while a view waits on its first Supabase fetch — see
-   components/ui/banknote-loader.tsx. Fades the strip's edges so notes drift
-   in and out rather than popping, and sweeps left-to-right with a little
-   bob/tilt so it doesn't read as a mechanical progress bar. */
-@keyframes banknote-fly {
+   components/ui/banknote-loader.tsx. A single note spins around its
+   vertical axis like a flipping coin (rotateY needs the parent's
+   `perspective` to read as 3D rather than a flat squash), with a brief
+   brightness lift as it turns edge-on to sell the flash of a spinning
+   note catching the light. */
+@keyframes banknote-spin {
   0% {
-    left: -12%;
-    opacity: 0;
-    transform: translateY(0) rotate(-10deg) scale(0.9);
+    transform: rotateY(0deg);
+    filter: brightness(1);
   }
-  10% {
-    opacity: 1;
+  25% {
+    filter: brightness(1.35);
   }
   50% {
-    transform: translateY(-8px) rotate(6deg) scale(1.05);
+    transform: rotateY(180deg);
+    filter: brightness(1);
   }
-  90% {
-    opacity: 1;
+  75% {
+    filter: brightness(1.35);
   }
   100% {
-    left: 112%;
-    opacity: 0;
-    transform: translateY(0) rotate(-10deg) scale(0.9);
+    transform: rotateY(360deg);
+    filter: brightness(1);
   }
 }
 
-.banknote-loader {
-  -webkit-mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent);
-  mask-image: linear-gradient(to right, transparent, black 14%, black 86%, transparent);
-}
-
-.banknote-loader span[aria-hidden] {
-  position: absolute;
-  animation-name: banknote-fly;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
+.banknote-spin {
+  display: inline-block;
+  animation: banknote-spin 1.1s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .banknote-loader span[aria-hidden] {
+  .banknote-spin {
     animation: none;
-    left: 44%;
-    opacity: 0.5;
   }
 }
