@@ -1,14 +1,17 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
 import { kr, todayLocalISODate } from "@/lib/format";
+import { distinctTagsFrom } from "@/lib/tags";
 import { useExpenses } from "@/lib/expenses-context";
 import { BackLink } from "@/components/ui/back-link";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
+import { DateField } from "@/components/ui/date-field";
 import { Numpad } from "@/components/ui/numpad";
 import { PayerChips } from "@/components/ui/payer-chips";
+import { TagField } from "@/components/ui/tag-field";
 
 const MAX_DIGITS = 6;
 
@@ -18,7 +21,8 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
   const { category: rawCategory } = use(props.params);
   const category = decodeURIComponent(rawCategory);
   const router = useRouter();
-  const { members, userId, ready, addExpense } = useExpenses();
+  const { expenses, members, userId, ready, addExpense } = useExpenses();
+  const tagSuggestions = useMemo(() => distinctTagsFrom(expenses), [expenses]);
   const [amt, setAmt] = useState("");
   const [payerId, setPayerId] = useState<string | null>(null);
   const [date, setDate] = useState(todayLocalISODate);
@@ -74,23 +78,11 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
           <BanknoteLoader compact />
         )}
 
-        <label className="flex h-12 w-full max-w-[280px] items-center justify-between rounded-2xl bg-surface-2 px-4">
-          <span className="text-sm font-semibold text-muted-2">Datum</span>
-          <input
-            type="date"
-            value={date}
-            max={todayLocalISODate()}
-            onChange={(e) => setDate(e.target.value || todayLocalISODate())}
-            className="bg-transparent text-sm font-semibold text-foreground outline-none [color-scheme:light] dark:[color-scheme:dark]"
-          />
-        </label>
+        <div className="flex w-full max-w-[280px] gap-2">
+          <DateField value={date} onChange={setDate} />
+          <TagField value={tag} onChange={setTag} suggestions={tagSuggestions} />
+        </div>
 
-        <input
-          value={tag}
-          onChange={(e) => setTag(e.target.value)}
-          placeholder="Tagg, t.ex. onödigt eller lyx (valfritt)"
-          className="h-12 w-full max-w-[280px] rounded-2xl bg-surface-2 px-4 text-center text-sm text-foreground outline-none placeholder:text-muted-2"
-        />
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
