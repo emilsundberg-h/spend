@@ -9,6 +9,7 @@ import { nameFor } from "@/lib/members";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { Card } from "@/components/ui/card";
 import { InfoBadge } from "@/components/ui/info-badge";
+import { SettingsIcon } from "@/components/ui/settings-icon";
 import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { TagBadge } from "@/components/ui/tag-badge";
 
@@ -31,8 +32,8 @@ export default function HomePage() {
     <div className="flex min-h-screen flex-col px-6 pb-32 pt-8">
       <header className="flex items-center justify-between">
         <span className="font-display text-lg font-semibold text-foreground">Utgifter</span>
-        <Link href="/settings" aria-label="Inställningar" className="text-xl text-muted">
-          ⚙
+        <Link href="/settings" aria-label="Inställningar" className="text-muted">
+          <SettingsIcon className="h-5 w-5" />
         </Link>
       </header>
 
