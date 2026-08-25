@@ -1,41 +1,43 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { expensesForMonth, groupByCategory, groupByTag, totalOf } from "@/lib/aggregate";
+import { useRouter } from "next/navigation";
+import { expensesForMonth, groupByCategory, groupByTag, monthlyTotals, totalOf } from "@/lib/aggregate";
 import { formatMonth, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { cn } from "@/lib/cn";
 import { BackLink } from "@/components/ui/back-link";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
-import { ProgressBar } from "@/components/ui/progress-bar";
+import { BreakdownChart, type BreakdownRow } from "@/components/ui/breakdown-chart";
+import { Card } from "@/components/ui/card";
+import { TrendChart } from "@/components/ui/trend-chart";
 
 type View = "category" | "tag";
 
 export default function SummaryPage() {
+  const router = useRouter();
   const { expenses, ready } = useExpenses();
   const [view, setView] = useState<View>("category");
   const now = new Date();
   const monthExpenses = expensesForMonth(expenses, now);
   const total = totalOf(monthExpenses);
+  const months = monthlyTotals(expenses, now, 6);
 
-  const rows =
+  const rows: BreakdownRow[] =
     view === "category"
       ? groupByCategory(monthExpenses).map((c) => ({
-          key: c.category,
-          label: c.category,
           href: `/summary/${encodeURIComponent(c.category)}`,
+          label: c.category,
           total: c.total,
           count: c.count,
+          category: c.category,
         }))
       : groupByTag(monthExpenses).map((t) => ({
-          key: t.tag,
-          label: `#${t.tag}`,
           href: `/summary/tag/${encodeURIComponent(t.tag)}`,
+          label: `#${t.tag}`,
           total: t.total,
           count: t.count,
         }));
-  const max = Math.max(1, ...rows.map((r) => r.total));
 
   const emptyMessage =
     view === "category" ? "Inga köp den här månaden än." : "Inga taggade köp den här månaden än.";
@@ -73,27 +75,24 @@ export default function SummaryPage() {
         ))}
       </div>
 
-      <div className="mt-5 flex flex-1 flex-col gap-2.5">
+      <Card className="mt-5">
         {!ready ? (
           <BanknoteLoader />
         ) : rows.length === 0 ? (
-          <p className="text-sm leading-relaxed text-muted-2">{emptyMessage}</p>
+          <p className="py-6 text-sm leading-relaxed text-muted-2">{emptyMessage}</p>
         ) : (
-          rows.map((r) => (
-            <Link key={r.key} href={r.href} className="rounded-2xl bg-surface px-4 py-3.5">
-              <div className="flex items-baseline justify-between gap-3">
-                <span className="text-[15px] font-semibold text-foreground">
-                  {r.label} <span className="text-[13px] font-normal text-muted-2">{r.count} köp</span>
-                </span>
-                <span className="font-mono text-[15px] font-semibold tabular-nums text-foreground">
-                  {kr(r.total)} kr
-                </span>
-              </div>
-              <ProgressBar percent={(r.total / max) * 100} />
-            </Link>
-          ))
+          <BreakdownChart rows={rows} onSelect={(href) => router.push(href)} />
         )}
-      </div>
+      </Card>
+
+      {ready ? (
+        <Card className="mt-4">
+          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+            Senaste 6 månaderna
+          </span>
+          <TrendChart months={months} />
+        </Card>
+      ) : null}
     </div>
   );
 }

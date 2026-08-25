@@ -6,6 +6,7 @@ import { expensesForMonth, totalOf } from "@/lib/aggregate";
 import { formatMonth, formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
+import { categoryBgClass } from "@/lib/category-colors";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { Card } from "@/components/ui/card";
 import { InfoBadge } from "@/components/ui/info-badge";
@@ -73,7 +74,7 @@ export default function HomePage() {
                 href={`/summary/${encodeURIComponent(e.category)}`}
                 className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5"
               >
-                <span className="h-2 w-2 flex-none rounded-full bg-accent" />
+                <span className={`h-2 w-2 flex-none rounded-full ${categoryBgClass(e.category)}`} />
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center gap-1.5">
                     <span className="truncate text-base font-semibold text-foreground">{e.category}</span>

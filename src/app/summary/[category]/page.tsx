@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
+import { categoryBgClass, categoryBorderClass } from "@/lib/category-colors";
 import { BackLink } from "@/components/ui/back-link";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { SwipeableRow } from "@/components/ui/swipeable-row";
@@ -31,7 +32,10 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
   return (
     <div className="flex min-h-screen flex-col px-6 pb-10 pt-8">
       <BackLink href="/summary" label="← Summering" />
-      <h1 className="mt-5 font-display text-[26px] font-extrabold tracking-tight text-foreground">{category}</h1>
+      <h1 className="mt-5 flex items-center gap-2.5 font-display text-[26px] font-extrabold tracking-tight text-foreground">
+        <span className={`h-3 w-3 flex-none rounded-full ${categoryBgClass(category)}`} />
+        {category}
+      </h1>
       <div className="mt-1 text-sm text-muted-2">
         {items.length} köp · {kr(total)} kr
       </div>
@@ -61,7 +65,9 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
                   </span>
                 </div>
                 {e.note ? (
-                  <p className="mt-2 border-l-2 border-accent pl-3 text-sm leading-relaxed text-foreground/80">
+                  <p
+                    className={`mt-2 border-l-2 pl-3 text-sm leading-relaxed text-foreground/80 ${categoryBorderClass(category)}`}
+                  >
                     {e.note}
                   </p>
                 ) : null}

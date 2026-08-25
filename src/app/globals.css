@@ -18,6 +18,22 @@
   --accent-soft-foreground: oklch(0.34 0.09 205);
   --chip-bg: oklch(0.93 0.008 250);
   --chip-foreground: oklch(0.42 0.02 250);
+
+  /* Validated 8-slot categorical palette (dataviz skill, references/palette.md),
+     re-validated against this app's actual --surface: worst adjacent CVD ΔE 9.1,
+     worst normal-vision ΔE 19.6 (both clear their floors). Fixed order — see
+     lib/category-colors.ts for why it's never hashed or cycled. */
+  --cat-1: #2a78d6;
+  --cat-2: #eb6834;
+  --cat-3: #1baf7a;
+  --cat-4: #eda100;
+  --cat-5: #e87ba4;
+  --cat-6: #008300;
+  --cat-7: #4a3aa7;
+  --cat-8: #e34948;
+  /* "Övrigt" and any custom category — a 9th+ series folds into a shared
+     neutral rather than getting a generated hue. */
+  --cat-other: #898781;
 }
 
 .dark {
@@ -34,6 +50,19 @@
   --accent-soft-foreground: oklch(0.86 0.1 200);
   --chip-bg: oklch(0.27 0.018 250);
   --chip-foreground: oklch(0.7 0.03 250);
+
+  /* Same 8 hues, stepped for the dark surface — worst adjacent CVD ΔE 8.4,
+     worst normal-vision ΔE 19.3, re-validated against this app's dark
+     --surface. */
+  --cat-1: #3987e5;
+  --cat-2: #d95926;
+  --cat-3: #199e70;
+  --cat-4: #c98500;
+  --cat-5: #d55181;
+  --cat-6: #008300;
+  --cat-7: #9085e9;
+  --cat-8: #e66767;
+  --cat-other: #898781;
 }
 
 @theme inline {
@@ -50,6 +79,16 @@
   --color-accent-soft-foreground: var(--accent-soft-foreground);
   --color-chip-bg: var(--chip-bg);
   --color-chip-foreground: var(--chip-foreground);
+
+  --color-cat-1: var(--cat-1);
+  --color-cat-2: var(--cat-2);
+  --color-cat-3: var(--cat-3);
+  --color-cat-4: var(--cat-4);
+  --color-cat-5: var(--cat-5);
+  --color-cat-6: var(--cat-6);
+  --color-cat-7: var(--cat-7);
+  --color-cat-8: var(--cat-8);
+  --color-cat-other: var(--cat-other);
 
   --font-sans: var(--font-libre-franklin);
   --font-display: var(--font-bricolage);
