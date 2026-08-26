@@ -3,7 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { expensesForMonth, groupByCategory, groupByTag, monthlyTotals, totalOf } from "@/lib/aggregate";
+import {
+  dailyTotalsForMonth,
+  expensesForMonth,
+  groupByCategory,
+  groupByTag,
+  monthlyTotals,
+  totalOf,
+  weekdayTotals,
+} from "@/lib/aggregate";
 import { formatMonth, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { cn } from "@/lib/cn";
@@ -11,9 +19,11 @@ import { categoryBgClass } from "@/lib/category-colors";
 import { BackLink } from "@/components/ui/back-link";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { BreakdownChart, type BreakdownRow } from "@/components/ui/breakdown-chart";
+import { CalendarHeatmap } from "@/components/ui/calendar-heatmap";
 import { Card } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { TrendChart } from "@/components/ui/trend-chart";
+import { WeekdayChart } from "@/components/ui/weekday-chart";
 
 type Grouping = "category" | "tag";
 type Presentation = "list" | "chart";
@@ -37,6 +47,8 @@ export default function SummaryPage() {
   const monthExpenses = expensesForMonth(expenses, now);
   const total = totalOf(monthExpenses);
   const months = monthlyTotals(expenses, now, 6);
+  const days = dailyTotalsForMonth(expenses, now);
+  const weekdays = weekdayTotals(expenses);
 
   const rows: BreakdownRow[] =
     grouping === "category"
@@ -140,12 +152,30 @@ export default function SummaryPage() {
           </Card>
 
           {ready ? (
-            <Card className="mt-4">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-                Senaste 6 månaderna
-              </span>
-              <TrendChart months={months} />
-            </Card>
+            <>
+              <Card className="mt-4">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                  Senaste 6 månaderna
+                </span>
+                <TrendChart months={months} />
+              </Card>
+
+              <Card className="mt-4">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
+                  Dag för dag · {formatMonth(now)}
+                </span>
+                <div className="mt-3">
+                  <CalendarHeatmap days={days} />
+                </div>
+              </Card>
+
+              <Card className="mt-4">
+                <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">Veckodagar</span>
+                <div className="mt-3">
+                  <WeekdayChart days={weekdays} />
+                </div>
+              </Card>
+            </>
           ) : null}
         </>
       )}
