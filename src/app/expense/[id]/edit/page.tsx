@@ -32,6 +32,7 @@ export default function EditExpensePage(props: PageProps<"/expense/[id]/edit">) 
   const [note, setNote] = useState(existing?.note ?? "");
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const categoryOptions = useMemo(() => {
     const custom = customCategoriesFrom(expenses).filter((c) => !(CATEGORIES as readonly string[]).includes(c));
@@ -78,24 +79,36 @@ export default function EditExpensePage(props: PageProps<"/expense/[id]/edit">) 
   async function handleSave() {
     if (!canSave || !payerId || saving) return;
     setSaving(true);
-    await editExpense({
-      id,
-      category,
-      amount: amountNumber,
-      payerId,
-      note: note.trim() || undefined,
-      tag: tag.trim() || undefined,
-      date,
-    });
-    router.back();
+    setError(null);
+    try {
+      await editExpense({
+        id,
+        category,
+        amount: amountNumber,
+        payerId,
+        note: note.trim() || undefined,
+        tag: tag.trim() || undefined,
+        date,
+      });
+      router.back();
+    } catch (err) {
+      setSaving(false);
+      setError(err instanceof Error ? err.message : "Kunde inte spara ändringen. Försök igen.");
+    }
   }
 
   async function handleDelete() {
     if (deleting) return;
     if (!window.confirm("Ta bort det här köpet?")) return;
     setDeleting(true);
-    await removeExpense(id);
-    router.back();
+    setError(null);
+    try {
+      await removeExpense(id);
+      router.back();
+    } catch (err) {
+      setDeleting(false);
+      setError(err instanceof Error ? err.message : "Kunde inte ta bort köpet. Försök igen.");
+    }
   }
 
   return (
@@ -146,6 +159,8 @@ export default function EditExpensePage(props: PageProps<"/expense/[id]/edit">) 
       </div>
 
       <Numpad onPress={press} />
+
+      {error ? <p className="mb-3 text-center text-sm font-semibold text-red-500">{error}</p> : null}
 
       <button
         type="button"

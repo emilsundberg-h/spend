@@ -21,7 +21,11 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
 
   async function handleDelete(id: string) {
     if (!window.confirm("Ta bort det här köpet?")) return;
-    await removeExpense(id);
+    try {
+      await removeExpense(id);
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Kunde inte ta bort köpet. Försök igen.");
+    }
   }
 
   const items = expenses

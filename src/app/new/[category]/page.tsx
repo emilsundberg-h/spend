@@ -29,6 +29,7 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
   const [tag, setTag] = useState("");
   const [note, setNote] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const selectedPayerId = payerId ?? userId;
   const amountNumber = amt === "" ? 0 : parseInt(amt, 10);
@@ -49,15 +50,21 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
   async function handleSave() {
     if (!canSave || !selectedPayerId || saving) return;
     setSaving(true);
-    await addExpense({
-      category,
-      amount: amountNumber,
-      payerId: selectedPayerId,
-      note: note.trim() || undefined,
-      tag: tag.trim() || undefined,
-      date,
-    });
-    router.push("/");
+    setError(null);
+    try {
+      await addExpense({
+        category,
+        amount: amountNumber,
+        payerId: selectedPayerId,
+        note: note.trim() || undefined,
+        tag: tag.trim() || undefined,
+        date,
+      });
+      router.push("/");
+    } catch (err) {
+      setSaving(false);
+      setError(err instanceof Error ? err.message : "Kunde inte spara köpet. Försök igen.");
+    }
   }
 
   return (
@@ -92,6 +99,8 @@ export default function NewExpenseAmountPage(props: PageProps<"/new/[category]">
       </div>
 
       <Numpad onPress={press} />
+
+      {error ? <p className="mb-3 text-center text-sm font-semibold text-red-500">{error}</p> : null}
 
       <button
         type="button"
