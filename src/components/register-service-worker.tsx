@@ -11,7 +11,14 @@ import { useEffect } from "react";
  * keep running a stale worker indefinitely — serving a JS chunk from a build
  * that no longer exists, which shows up as a hard client-side crash. Forcing
  * an update check on load/foreground, and reloading once a new worker takes
- * over, closes that gap.
+ * over, closes that gap — except registration.update() is only as good as
+ * the fetch behind it, and browsers are allowed to serve that fetch from
+ * their own HTTP cache if sw.js's response headers don't forbid it. Safari
+ * in particular has a history of doing exactly that, silently defeating
+ * update() (this is the mobile-only variant of the same underlying bug:
+ * desktop's HTTP cache happened to be cold, the phone's wasn't).
+ * `updateViaCache: "none"` removes that ambiguity — the browser is required
+ * to always hit the network for sw.js itself, never its own cache.
  */
 export function RegisterServiceWorker() {
   useEffect(() => {
@@ -24,7 +31,7 @@ export function RegisterServiceWorker() {
       window.location.reload();
     });
 
-    navigator.serviceWorker.register("/sw.js").then((registration) => {
+    navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).then((registration) => {
       registration.update().catch(() => {});
 
       const recheck = () => {
