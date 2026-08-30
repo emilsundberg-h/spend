@@ -31,8 +31,21 @@
   --cat-6: #008300;
   --cat-7: #4a3aa7;
   --cat-8: #e34948;
-  /* "Övrigt" and any custom category — a 9th+ series folds into a shared
-     neutral rather than getting a generated hue. */
+  /* Extra slots for user-created custom categories (assigned in stable
+     alphabetical order — see customCategorySlotIndex in category-colors.ts).
+     The dataviz skill's method caps GUARANTEED-distinct hues at 8 (its
+     all-pairs analysis), but every dot here always sits beside the category's
+     text name — never color-alone identity — so the WARN-band CVD floor
+     (≥6, adjacent-pair) is legal with that label as the secondary encoding.
+     Validated adjacent (not all-pairs) against this app's own light surface:
+     worst CVD ΔE 8.0 (protan), worst normal-vision ΔE 19.6. A 5th+ custom
+     category still folds into --cat-other, same as before. */
+  --cat-9: #0a7a9e;
+  --cat-10: #c23d80;
+  --cat-11: #8a7a1e;
+  --cat-12: #3d4ea0;
+  /* "Övrigt" and any custom category beyond the four extra slots above — an
+     N-th+ series folds into a shared neutral rather than getting a hue. */
   --cat-other: #898781;
 }
 
@@ -62,6 +75,12 @@
   --cat-6: #008300;
   --cat-7: #9085e9;
   --cat-8: #e66767;
+  /* Same four extra slots, stepped for the dark surface — worst adjacent
+     CVD ΔE 7.8 (deutan), worst normal-vision ΔE 19.3. */
+  --cat-9: #2f96b8;
+  --cat-10: #d05e93;
+  --cat-11: #96892a;
+  --cat-12: #6f7fd6;
   --cat-other: #898781;
 }
 
@@ -88,6 +107,10 @@
   --color-cat-6: var(--cat-6);
   --color-cat-7: var(--cat-7);
   --color-cat-8: var(--cat-8);
+  --color-cat-9: var(--cat-9);
+  --color-cat-10: var(--cat-10);
+  --color-cat-11: var(--cat-11);
+  --color-cat-12: var(--cat-12);
   --color-cat-other: var(--cat-other);
 
   --font-sans: var(--font-libre-franklin);

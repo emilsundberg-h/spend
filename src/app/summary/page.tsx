@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -12,10 +12,11 @@ import {
   totalOf,
   weekdayTotals,
 } from "@/lib/aggregate";
+import { customCategoriesFrom } from "@/lib/categories";
 import { formatMonth, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
 import { cn } from "@/lib/cn";
-import { categoryBgClass } from "@/lib/category-colors";
+import { categoryBgClass, categoryColorVar } from "@/lib/category-colors";
 import { BackLink } from "@/components/ui/back-link";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { BreakdownChart, type BreakdownRow } from "@/components/ui/breakdown-chart";
@@ -43,6 +44,7 @@ export default function SummaryPage() {
   const { expenses, ready } = useExpenses();
   const [grouping, setGrouping] = useState<Grouping>("category");
   const [presentation, setPresentation] = useState<Presentation>("list");
+  const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
   const now = new Date();
   const monthExpenses = expensesForMonth(expenses, now);
   const total = totalOf(monthExpenses);
@@ -58,6 +60,7 @@ export default function SummaryPage() {
           total: c.total,
           count: c.count,
           category: c.category,
+          color: categoryColorVar(c.category, customCategories),
         }))
       : groupByTag(monthExpenses).map((t) => ({
           href: `/summary/tag/${encodeURIComponent(t.tag)}`,
@@ -133,7 +136,7 @@ export default function SummaryPage() {
                 </div>
                 <ProgressBar
                   percent={(r.total / max) * 100}
-                  colorClassName={r.category ? categoryBgClass(r.category) : undefined}
+                  colorClassName={r.category ? categoryBgClass(r.category, customCategories) : undefined}
                 />
               </Link>
             ))

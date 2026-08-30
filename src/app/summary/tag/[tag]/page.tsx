@@ -1,8 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { formatRelativeDay, kr } from "@/lib/format";
+import { customCategoriesFrom } from "@/lib/categories";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
 import { categoryBgClass } from "@/lib/category-colors";
@@ -16,6 +17,7 @@ export default function TagDetailPage(props: PageProps<"/summary/tag/[tag]">) {
   const tag = decodeURIComponent(rawTag);
   const router = useRouter();
   const { expenses, members, ready, removeExpense } = useExpenses();
+  const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
 
   async function handleDelete(id: string) {
     if (!window.confirm("Ta bort det här köpet?")) return;
@@ -54,7 +56,7 @@ export default function TagDetailPage(props: PageProps<"/summary/tag/[tag]">) {
               <div className="rounded-2xl bg-surface px-4 py-3.5">
                 <div className="flex items-baseline justify-between gap-3">
                   <span className="flex min-w-0 items-center gap-1.5 truncate text-[15px] text-muted-2">
-                    <span className={`h-2 w-2 flex-none rounded-full ${categoryBgClass(e.category)}`} />
+                    <span className={`h-2 w-2 flex-none rounded-full ${categoryBgClass(e.category, customCategories)}`} />
                     {e.category} · {nameFor(members, e.payerId)} · {formatRelativeDay(e.date)}
                   </span>
                   <span className="flex-none font-mono text-[17px] font-semibold tabular-nums text-foreground">

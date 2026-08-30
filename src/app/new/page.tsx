@@ -2,12 +2,10 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { CATEGORIES, customCategoriesFrom } from "@/lib/categories";
+import { FIXED_CATEGORIES, OTHER_CATEGORY, customCategoriesFrom } from "@/lib/categories";
 import { useExpenses } from "@/lib/expenses-context";
 import { BackLink } from "@/components/ui/back-link";
 import { Tile } from "@/components/ui/tile";
-
-const OTHER = "Övrigt";
 
 export default function NewExpensePage() {
   const router = useRouter();
@@ -17,6 +15,8 @@ export default function NewExpensePage() {
 
   // Surfaced so picking the same custom category again doesn't mean
   // retyping it (and risking a typo that'd split it into a near-duplicate).
+  // "Övrigt" itself always stays last — it's the "type a new one" trigger,
+  // not a category you'd pick again — so custom ones are inserted before it.
   const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
 
   function goToCategory(category: string) {
@@ -24,7 +24,7 @@ export default function NewExpensePage() {
   }
 
   function handleTileClick(category: string) {
-    if (category === OTHER) {
+    if (category === OTHER_CATEGORY) {
       setCustomizing(true);
       return;
     }
@@ -32,7 +32,7 @@ export default function NewExpensePage() {
   }
 
   function confirmCustom() {
-    goToCategory(customName.trim() || OTHER);
+    goToCategory(customName.trim() || OTHER_CATEGORY);
   }
 
   if (customizing) {
@@ -56,7 +56,7 @@ export default function NewExpensePage() {
           value={customName}
           onChange={(e) => setCustomName(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && confirmCustom()}
-          placeholder={OTHER}
+          placeholder={OTHER_CATEGORY}
           className="h-12 w-full rounded-2xl bg-surface-2 px-4 text-[15px] text-foreground outline-none placeholder:text-muted-2"
         />
         <button
@@ -77,21 +77,14 @@ export default function NewExpensePage() {
         Vad köpte ni?
       </h1>
       <div className="grid grid-cols-2 gap-2.5">
-        {CATEGORIES.map((category) => (
+        {FIXED_CATEGORIES.map((category) => (
           <Tile key={category} label={category} onClick={() => handleTileClick(category)} />
         ))}
+        {customCategories.map((category) => (
+          <Tile key={category} label={category} href={`/new/${encodeURIComponent(category)}`} />
+        ))}
+        <Tile label={OTHER_CATEGORY} onClick={() => handleTileClick(OTHER_CATEGORY)} />
       </div>
-
-      {customCategories.length > 0 ? (
-        <>
-          <div className="mt-7 text-xs font-semibold uppercase tracking-[0.16em] text-muted">Egna kategorier</div>
-          <div className="mt-2.5 grid grid-cols-2 gap-2.5">
-            {customCategories.map((category) => (
-              <Tile key={category} label={category} href={`/new/${encodeURIComponent(category)}`} />
-            ))}
-          </div>
-        </>
-      ) : null}
     </div>
   );
 }

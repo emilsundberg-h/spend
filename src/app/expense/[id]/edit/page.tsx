@@ -3,7 +3,7 @@
 import { use, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/cn";
-import { CATEGORIES, customCategoriesFrom } from "@/lib/categories";
+import { FIXED_CATEGORIES, OTHER_CATEGORY, customCategoriesFrom } from "@/lib/categories";
 import { kr, todayLocalISODate } from "@/lib/format";
 import { distinctTagsFrom } from "@/lib/tags";
 import { useExpenses } from "@/lib/expenses-context";
@@ -34,9 +34,12 @@ export default function EditExpensePage(props: PageProps<"/expense/[id]/edit">) 
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Same ordering as the category picker: fixed categories, then custom ones
+  // used before, with "Övrigt" pinned last (it's a catch-all, not something
+  // you'd deliberately switch an existing purchase to).
   const categoryOptions = useMemo(() => {
-    const custom = customCategoriesFrom(expenses).filter((c) => !(CATEGORIES as readonly string[]).includes(c));
-    return [...CATEGORIES, ...custom];
+    const custom = customCategoriesFrom(expenses);
+    return [...FIXED_CATEGORIES, ...custom, OTHER_CATEGORY];
   }, [expenses]);
   const tagSuggestions = useMemo(() => distinctTagsFrom(expenses), [expenses]);
 

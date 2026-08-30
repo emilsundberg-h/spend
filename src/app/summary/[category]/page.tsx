@@ -1,8 +1,9 @@
 "use client";
 
-import { use } from "react";
+import { use, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { formatRelativeDay, kr } from "@/lib/format";
+import { customCategoriesFrom } from "@/lib/categories";
 import { useExpenses } from "@/lib/expenses-context";
 import { nameFor } from "@/lib/members";
 import { categoryBgClass, categoryBorderClass } from "@/lib/category-colors";
@@ -18,6 +19,7 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
   const category = decodeURIComponent(rawCategory);
   const router = useRouter();
   const { expenses, members, ready, removeExpense } = useExpenses();
+  const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
 
   async function handleDelete(id: string) {
     if (!window.confirm("Ta bort det här köpet?")) return;
@@ -37,7 +39,7 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
     <div className="flex min-h-screen flex-col px-6 pb-10 pt-8">
       <BackLink href="/summary" label="← Summering" />
       <h1 className="mt-5 flex items-center gap-2.5 font-display text-[26px] font-extrabold tracking-tight text-foreground">
-        <span className={`h-3 w-3 flex-none rounded-full ${categoryBgClass(category)}`} />
+        <span className={`h-3 w-3 flex-none rounded-full ${categoryBgClass(category, customCategories)}`} />
         {category}
       </h1>
       <div className="mt-1 text-sm text-muted-2">
@@ -70,7 +72,7 @@ export default function CategoryDetailPage(props: PageProps<"/summary/[category]
                 </div>
                 {e.note ? (
                   <p
-                    className={`mt-2 border-l-2 pl-3 text-sm leading-relaxed text-foreground/80 ${categoryBorderClass(category)}`}
+                    className={`mt-2 border-l-2 pl-3 text-sm leading-relaxed text-foreground/80 ${categoryBorderClass(category, customCategories)}`}
                   >
                     {e.note}
                   </p>

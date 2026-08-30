@@ -3,7 +3,6 @@
 import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import type { BarRectangleItem } from "recharts";
 import { kr } from "@/lib/format";
-import { categoryColorVar } from "@/lib/category-colors";
 
 export interface BreakdownRow {
   /** Where tapping this bar navigates to. */
@@ -11,8 +10,14 @@ export interface BreakdownRow {
   label: string;
   total: number;
   count: number;
-  /** Category to color the bar by. Omitted in the tag view — those bars stay a flat accent. */
+  /** Category this bar represents, if grouped by category (unused here beyond that). */
   category?: string;
+  /**
+   * Resolved CSS color (categoryColorVar(...), computed by the caller — it
+   * knows the household's custom-category list, this component doesn't).
+   * Omitted in the tag view — those bars stay a flat accent.
+   */
+  color?: string;
 }
 
 const ROW_HEIGHT = 44;
@@ -69,7 +74,7 @@ export function BreakdownChart({ rows, onSelect }: { rows: BreakdownRow[]; onSel
           }}
         >
           {rows.map((r) => (
-            <Cell key={r.href} fill={r.category ? categoryColorVar(r.category) : "var(--accent)"} />
+            <Cell key={r.href} fill={r.color ?? "var(--accent)"} />
           ))}
         </Bar>
       </BarChart>
