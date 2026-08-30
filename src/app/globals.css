@@ -31,21 +31,25 @@
   --cat-6: #008300;
   --cat-7: #4a3aa7;
   --cat-8: #e34948;
-  /* Extra slots for user-created custom categories (assigned in stable
-     alphabetical order — see customCategorySlotIndex in category-colors.ts).
-     The dataviz skill's method caps GUARANTEED-distinct hues at 8 (its
-     all-pairs analysis), but every dot here always sits beside the category's
-     text name — never color-alone identity — so the WARN-band CVD floor
-     (≥6, adjacent-pair) is legal with that label as the secondary encoding.
-     Validated adjacent (not all-pairs) against this app's own light surface:
-     worst CVD ΔE 8.0 (protan), worst normal-vision ΔE 19.6. A 5th+ custom
-     category still folds into --cat-other, same as before. */
+  /* --cat-9/10: fixed slots for the "Kalas"/"Maja" categories (in
+     CATEGORIES' declared order, same as 1-8) — not a generated hue, chosen
+     from the same validated pool as the two dynamic slots below.
+     --cat-11/12: reserved for up to two ad-hoc custom categories typed in
+     via "Övrigt" (assigned in stable alphabetical order, not creation
+     order — see customSlotIndex in category-colors.ts). The dataviz
+     skill's method caps GUARANTEED-distinct hues at 8 (its all-pairs
+     analysis), but every dot here always sits beside the category's text
+     name — never color-alone identity — so the WARN-band CVD floor (≥6,
+     adjacent-pair) is legal with that label as the secondary encoding.
+     Validated adjacent (not all-pairs) against this app's own light
+     surface: worst CVD ΔE 8.0 (protan), worst normal-vision ΔE 19.6. */
   --cat-9: #0a7a9e;
   --cat-10: #c23d80;
   --cat-11: #8a7a1e;
   --cat-12: #3d4ea0;
-  /* "Övrigt" and any custom category beyond the four extra slots above — an
-     N-th+ series folds into a shared neutral rather than getting a hue. */
+  /* "Övrigt", a hidden/deleted category (reassigned here), or a 3rd+ ad-hoc
+     custom category beyond the two dynamic slots above — folds into a
+     shared neutral rather than getting a hue. */
   --cat-other: #898781;
 }
 
@@ -75,8 +79,9 @@
   --cat-6: #008300;
   --cat-7: #9085e9;
   --cat-8: #e66767;
-  /* Same four extra slots, stepped for the dark surface — worst adjacent
-     CVD ΔE 7.8 (deutan), worst normal-vision ΔE 19.3. */
+  /* Same four extra slots (9/10 fixed for Kalas/Maja, 11/12 the dynamic
+     custom pool), stepped for the dark surface — worst adjacent CVD ΔE 7.8
+     (deutan), worst normal-vision ΔE 19.3. */
   --cat-9: #2f96b8;
   --cat-10: #d05e93;
   --cat-11: #96892a;

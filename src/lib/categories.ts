@@ -7,6 +7,8 @@ export const CATEGORIES = [
   "Hälsa",
   "Kläder",
   "Prenumerationer",
+  "Kalas",
+  "Maja",
   "Övrigt",
 ] as const;
 

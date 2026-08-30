@@ -147,6 +147,18 @@ export async function updateMyDisplayName(userId: string, name: string): Promise
   if (error) throw error;
 }
 
+export async function listHiddenCategories(householdId: string): Promise<string[]> {
+  const { data, error } = await db().from("hidden_categories").select("category").eq("household_id", householdId);
+  if (error) throw error;
+  return (data as { category: string }[]).map((row) => row.category);
+}
+
+/** Removes a category from the picker and reassigns its existing expenses to "Övrigt", atomically. */
+export async function hideCategory(householdId: string, category: string): Promise<void> {
+  const { error } = await db().rpc("hide_category", { p_household_id: householdId, p_category: category });
+  if (error) throw error;
+}
+
 interface ExpenseChangeHandlers {
   onInsert: (expense: Expense) => void;
   onUpdate: (expense: Expense) => void;

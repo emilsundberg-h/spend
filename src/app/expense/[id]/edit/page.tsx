@@ -18,7 +18,7 @@ const MAX_DIGITS = 6;
 export default function EditExpensePage(props: PageProps<"/expense/[id]/edit">) {
   const { id } = use(props.params);
   const router = useRouter();
-  const { expenses, members, ready, editExpense, removeExpense } = useExpenses();
+  const { expenses, members, ready, hiddenCategories, editExpense, removeExpense } = useExpenses();
 
   const existing = expenses.find((e) => e.id === id);
 
@@ -36,11 +36,13 @@ export default function EditExpensePage(props: PageProps<"/expense/[id]/edit">) 
 
   // Same ordering as the category picker: fixed categories, then custom ones
   // used before, with "Övrigt" pinned last (it's a catch-all, not something
-  // you'd deliberately switch an existing purchase to).
+  // you'd deliberately switch an existing purchase to). Hidden (deleted)
+  // categories are excluded here too — can't re-assign a purchase to one.
   const categoryOptions = useMemo(() => {
-    const custom = customCategoriesFrom(expenses);
-    return [...FIXED_CATEGORIES, ...custom, OTHER_CATEGORY];
-  }, [expenses]);
+    const fixed = FIXED_CATEGORIES.filter((c) => !hiddenCategories.includes(c));
+    const custom = customCategoriesFrom(expenses).filter((c) => !hiddenCategories.includes(c));
+    return [...fixed, ...custom, OTHER_CATEGORY];
+  }, [expenses, hiddenCategories]);
   const tagSuggestions = useMemo(() => distinctTagsFrom(expenses), [expenses]);
 
   const amountNumber = amt === "" ? 0 : parseInt(amt, 10);

@@ -5,30 +5,31 @@ import { useRouter } from "next/navigation";
 import { FIXED_CATEGORIES, OTHER_CATEGORY, customCategoriesFrom } from "@/lib/categories";
 import { useExpenses } from "@/lib/expenses-context";
 import { BackLink } from "@/components/ui/back-link";
+import { CategoryTile } from "@/components/ui/category-tile";
 import { Tile } from "@/components/ui/tile";
 
 export default function NewExpensePage() {
   const router = useRouter();
-  const { expenses } = useExpenses();
+  const { expenses, hiddenCategories, hideCategory } = useExpenses();
   const [customizing, setCustomizing] = useState(false);
   const [customName, setCustomName] = useState("");
 
-  // Surfaced so picking the same custom category again doesn't mean
-  // retyping it (and risking a typo that'd split it into a near-duplicate).
   // "Övrigt" itself always stays last — it's the "type a new one" trigger,
   // not a category you'd pick again — so custom ones are inserted before it.
-  const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
+  // Both lists exclude anything hidden (long-press-deleted) from the picker.
+  const fixedCategories = useMemo(
+    () => FIXED_CATEGORIES.filter((c) => !hiddenCategories.includes(c)),
+    [hiddenCategories],
+  );
+  // Surfaced so picking the same custom category again doesn't mean
+  // retyping it (and risking a typo that'd split it into a near-duplicate).
+  const customCategories = useMemo(
+    () => customCategoriesFrom(expenses).filter((c) => !hiddenCategories.includes(c)),
+    [expenses, hiddenCategories],
+  );
 
   function goToCategory(category: string) {
     router.push(`/new/${encodeURIComponent(category)}`);
-  }
-
-  function handleTileClick(category: string) {
-    if (category === OTHER_CATEGORY) {
-      setCustomizing(true);
-      return;
-    }
-    goToCategory(category);
   }
 
   function confirmCustom() {
@@ -73,17 +74,28 @@ export default function NewExpensePage() {
   return (
     <div className="flex min-h-screen flex-col px-6 pb-10 pt-8">
       <BackLink href="/" label="✕ Avbryt" />
-      <h1 className="mb-4 mt-5 font-display text-[28px] font-extrabold tracking-tight text-foreground">
+      <h1 className="mb-2 mt-5 font-display text-[28px] font-extrabold tracking-tight text-foreground">
         Vad köpte ni?
       </h1>
+      <p className="mb-4 text-sm leading-relaxed text-muted-2">Håll inne en kategori för att ta bort den.</p>
       <div className="grid grid-cols-2 gap-2.5">
-        {FIXED_CATEGORIES.map((category) => (
-          <Tile key={category} label={category} onClick={() => handleTileClick(category)} />
+        {fixedCategories.map((category) => (
+          <CategoryTile
+            key={category}
+            label={category}
+            href={`/new/${encodeURIComponent(category)}`}
+            onDelete={() => hideCategory(category)}
+          />
         ))}
         {customCategories.map((category) => (
-          <Tile key={category} label={category} href={`/new/${encodeURIComponent(category)}`} />
+          <CategoryTile
+            key={category}
+            label={category}
+            href={`/new/${encodeURIComponent(category)}`}
+            onDelete={() => hideCategory(category)}
+          />
         ))}
-        <Tile label={OTHER_CATEGORY} onClick={() => handleTileClick(OTHER_CATEGORY)} />
+        <Tile label={OTHER_CATEGORY} onClick={() => setCustomizing(true)} />
       </div>
     </div>
   );

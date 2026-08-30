@@ -2,17 +2,18 @@ import { CATEGORIES } from "./categories";
 
 // One color slot per fixed category (in CATEGORIES' declared order, minus
 // "Övrigt" — that shares the neutral "other" slot). The dataviz skill's rule:
-// a 9th+ series never gets a generated hue — order is the CVD-safety
-// mechanism, so it's fixed here, never hashed or cycled. See globals.css for
-// the validated hex values behind these tokens (--cat-1..8, --cat-other).
+// a slot beyond the pool never gets a generated hue — order is the
+// CVD-safety mechanism, so it's fixed here, never hashed or cycled. See
+// globals.css for the validated hex values behind these tokens (--cat-1..10,
+// --cat-other).
 const ORDER = CATEGORIES.filter((c) => c !== "Övrigt");
 
-// Four extra slots for user-created custom categories — also fixed order
-// (alphabetical, stable regardless of when each was created or how the
-// current view happens to sort them), also validated (see globals.css).
-// A 5th+ distinct custom category folds into --cat-other, same rule as the
-// fixed set past slot 8.
-const CUSTOM_SLOT_COUNT = 4;
+// Two extra slots for user-typed-in custom categories (via "Övrigt") not
+// already covered above — also fixed order (alphabetical, stable regardless
+// of when each was created or how the current view happens to sort them),
+// also validated (see globals.css). A 3rd+ ad-hoc custom category folds into
+// the shared neutral --cat-other, same rule as the fixed set past its pool.
+const CUSTOM_SLOT_COUNT = 2;
 
 // Written as literal strings (not built from a template) so Tailwind's
 // source scanner can see the class names it needs to generate.
@@ -25,6 +26,8 @@ const BG_CLASSES = [
   "bg-cat-6",
   "bg-cat-7",
   "bg-cat-8",
+  "bg-cat-9",
+  "bg-cat-10",
 ] as const;
 
 const BORDER_CLASSES = [
@@ -36,18 +39,20 @@ const BORDER_CLASSES = [
   "border-cat-6",
   "border-cat-7",
   "border-cat-8",
+  "border-cat-9",
+  "border-cat-10",
 ] as const;
 
-const CUSTOM_BG_CLASSES = ["bg-cat-9", "bg-cat-10", "bg-cat-11", "bg-cat-12"] as const;
-const CUSTOM_BORDER_CLASSES = ["border-cat-9", "border-cat-10", "border-cat-11", "border-cat-12"] as const;
+const CUSTOM_BG_CLASSES = ["bg-cat-11", "bg-cat-12"] as const;
+const CUSTOM_BORDER_CLASSES = ["border-cat-11", "border-cat-12"] as const;
 
 function slotIndex(category: string): number {
   return ORDER.indexOf(category as (typeof ORDER)[number]);
 }
 
 /**
- * Index into the four custom slots, or -1 if `category` isn't a custom
- * category or there are more than four in use. `customCategories` should be
+ * Index into the two custom slots, or -1 if `category` isn't a custom
+ * category or there are more than two in use. `customCategories` should be
  * `customCategoriesFrom(expenses)` — already alphabetical, which is what
  * makes this stable across renders/sessions without tracking creation order.
  */
@@ -75,7 +80,7 @@ export function categoryBorderClass(category: string, customCategories: string[]
 /** CSS var (for chart fills, which need a real color value rather than a Tailwind class). */
 export function categoryColorVar(category: string, customCategories: string[] = []): string {
   const custom = customSlotIndex(category, customCategories);
-  if (custom !== -1) return `var(--cat-${9 + custom})`;
+  if (custom !== -1) return `var(--cat-${11 + custom})`;
   const i = slotIndex(category);
   return i === -1 ? "var(--cat-other)" : `var(--cat-${i + 1})`;
 }

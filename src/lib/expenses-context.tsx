@@ -5,14 +5,17 @@ import { createClient } from "./supabase/client";
 import {
   deleteExpense,
   getMyHouseholdId,
+  hideCategory as hideCategoryApi,
   insertExpense,
   listExpenses,
+  listHiddenCategories,
   listHouseholdMembers,
   subscribeToExpenseChanges,
   updateExpense,
   updateMyDisplayName,
   type UpdateExpenseInput,
 } from "./supabase/data";
+import { OTHER_CATEGORY } from "./categories";
 import type { Expense, HouseholdMember } from "./types";
 
 interface NewExpenseInput {
@@ -50,12 +53,16 @@ interface ExpensesContextValue {
   expenses: Expense[];
   members: HouseholdMember[];
   userId: string | null;
+  /** Categories removed from the picker — CATEGORIES itself never changes, this just filters it. */
+  hiddenCategories: string[];
   /** False until the initial Supabase fetch (household + expenses + members) has finished. */
   ready: boolean;
   addExpense: (input: NewExpenseInput) => Promise<void>;
   editExpense: (input: UpdateExpenseInput) => Promise<void>;
   removeExpense: (id: string) => Promise<void>;
   setMyDisplayName: (name: string) => Promise<void>;
+  /** Removes a category from the picker; its existing expenses move to "Övrigt". */
+  hideCategory: (category: string) => Promise<void>;
   /** Re-runs the initial fetch on demand — used by pull-to-refresh. */
   refresh: () => Promise<void>;
 }
@@ -67,6 +74,7 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
   const [householdId, setHouseholdId] = useState<string | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [members, setMembers] = useState<HouseholdMember[]>([]);
+  const [hiddenCategories, setHiddenCategories] = useState<string[]>([]);
   const [ready, setReady] = useState(false);
 
   // The provider sits at the root layout and effectively never unmounts,
@@ -96,10 +104,15 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
     }
     setHouseholdId(hid);
 
-    const [loadedExpenses, loadedMembers] = await Promise.all([listExpenses(hid), listHouseholdMembers(hid)]);
+    const [loadedExpenses, loadedMembers, loadedHidden] = await Promise.all([
+      listExpenses(hid),
+      listHouseholdMembers(hid),
+      listHiddenCategories(hid),
+    ]);
     if (!mounted.current) return;
     setExpenses(loadedExpenses);
     setMembers(loadedMembers);
+    setHiddenCategories(loadedHidden);
     setReady(true);
   }, []);
 
@@ -139,17 +152,29 @@ export function ExpensesProvider({ children }: { children: ReactNode }) {
     setMembers((prev) => prev.map((m) => (m.id === userId ? { ...m, displayName: name } : m)));
   }
 
+  async function hideCategory(category: string) {
+    if (!householdId) return;
+    await hideCategoryApi(householdId, category);
+    setHiddenCategories((prev) => (prev.includes(category) ? prev : [...prev, category]));
+    // The realtime UPDATE events for each reassigned row will also arrive
+    // and land on this same result, but updating locally now means the
+    // person who did it sees it immediately instead of waiting on that.
+    setExpenses((prev) => prev.map((e) => (e.category === category ? { ...e, category: OTHER_CATEGORY } : e)));
+  }
+
   return (
     <ExpensesContext.Provider
       value={{
         expenses,
         members,
         userId,
+        hiddenCategories,
         ready,
         addExpense,
         editExpense,
         removeExpense,
         setMyDisplayName,
+        hideCategory,
         refresh: load,
       }}
     >
