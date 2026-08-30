@@ -21,8 +21,16 @@ export function ExpenseDetail({ expenseId, onClose }: { expenseId: string; onClo
     return <p className="text-sm leading-relaxed text-muted-2">Hittar inte det här köpet — det kan ha tagits bort redan.</p>;
   }
 
+  // TypeScript doesn't carry the `if (!expense) return` narrowing above into
+  // nested closures (event handlers run "later", as far as the checker's
+  // concerned) — every closure that touches `expense` needs its own guard.
+  function handleEdit() {
+    if (!expense) return;
+    router.push(`/expense/${expense.id}/edit`);
+  }
+
   async function handleDelete() {
-    if (deleting) return;
+    if (!expense || deleting) return;
     if (!window.confirm("Ta bort det här köpet?")) return;
     setDeleting(true);
     try {
@@ -66,7 +74,7 @@ export function ExpenseDetail({ expenseId, onClose }: { expenseId: string; onClo
       <div className="mt-2 flex gap-2.5">
         <button
           type="button"
-          onClick={() => router.push(`/expense/${expense.id}/edit`)}
+          onClick={handleEdit}
           className="h-12 flex-1 rounded-2xl bg-chip-bg text-sm font-bold text-chip-foreground"
         >
           Ändra
