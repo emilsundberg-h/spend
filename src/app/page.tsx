@@ -12,7 +12,7 @@ import { categoryBgClass } from "@/lib/category-colors";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Card } from "@/components/ui/card";
-import { CategoryPurchaseList } from "@/components/category-purchase-list";
+import { ExpenseDetail } from "@/components/expense-detail";
 import { InfoBadge } from "@/components/ui/info-badge";
 import { SettingsIcon } from "@/components/ui/settings-icon";
 import { SwipeableRow } from "@/components/ui/swipeable-row";
@@ -21,14 +21,14 @@ import { TagBadge } from "@/components/ui/tag-badge";
 export default function HomePage() {
   const router = useRouter();
   const { expenses, members, ready, removeExpense } = useExpenses();
-  // sheetCategory is sticky — it's never cleared on close, only ever
+  // sheetExpenseId is sticky — it's never cleared on close, only ever
   // overwritten by the next row tapped — so the sheet keeps showing its
   // last content while it slides down instead of going blank mid-animation.
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [sheetCategory, setSheetCategory] = useState<string | null>(null);
+  const [sheetExpenseId, setSheetExpenseId] = useState<string | null>(null);
 
-  function openCategorySheet(category: string) {
-    setSheetCategory(category);
+  function openExpenseSheet(id: string) {
+    setSheetExpenseId(id);
     setSheetOpen(true);
   }
 
@@ -91,7 +91,7 @@ export default function HomePage() {
             >
               <button
                 type="button"
-                onClick={() => openCategorySheet(e.category)}
+                onClick={() => openExpenseSheet(e.id)}
                 className="flex w-full items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 text-left"
               >
                 <span className={`h-2 w-2 flex-none rounded-full ${categoryBgClass(e.category, customCategories)}`} />
@@ -121,7 +121,7 @@ export default function HomePage() {
       </Link>
 
       <BottomSheet open={sheetOpen} onClose={() => setSheetOpen(false)}>
-        {sheetCategory ? <CategoryPurchaseList category={sheetCategory} /> : null}
+        {sheetExpenseId ? <ExpenseDetail expenseId={sheetExpenseId} onClose={() => setSheetOpen(false)} /> : null}
       </BottomSheet>
     </div>
   );
