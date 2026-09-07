@@ -5,8 +5,9 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { expensesForMonth, totalOf } from "@/lib/aggregate";
 import { customCategoriesFrom } from "@/lib/categories";
-import { formatMonth, formatRelativeDay, kr } from "@/lib/format";
+import { formatRelativeDay, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
+import { useMonthNav } from "@/lib/use-month-nav";
 import { nameFor } from "@/lib/members";
 import { categoryBgClass } from "@/lib/category-colors";
 import { BanknoteLoader } from "@/components/ui/banknote-loader";
@@ -14,6 +15,7 @@ import { BottomSheet } from "@/components/ui/bottom-sheet";
 import { Card } from "@/components/ui/card";
 import { ExpenseDetail } from "@/components/expense-detail";
 import { InfoBadge } from "@/components/ui/info-badge";
+import { MonthNav } from "@/components/ui/month-nav";
 import { SettingsIcon } from "@/components/ui/settings-icon";
 import { SwipeableRow } from "@/components/ui/swipeable-row";
 import { TagBadge } from "@/components/ui/tag-badge";
@@ -41,8 +43,8 @@ export default function HomePage() {
     }
   }
   const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
-  const now = new Date();
-  const monthExpenses = expensesForMonth(expenses, now);
+  const { month, isCurrentMonth, goToPreviousMonth, goToNextMonth } = useMonthNav();
+  const monthExpenses = expensesForMonth(expenses, month);
   const total = totalOf(monthExpenses);
   // Already sorted purchase-date desc (see listExpenses/insertSorted) — the
   // whole month, not just a handful of the most recent entries.
@@ -59,7 +61,7 @@ export default function HomePage() {
 
       <Card className="mt-5">
         <div className="flex items-baseline justify-between">
-          <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">{formatMonth(now)}</span>
+          <MonthNav month={month} canGoNext={!isCurrentMonth} onPrevious={goToPreviousMonth} onNext={goToNextMonth} />
           <Link href="/summary" className="text-sm font-semibold text-accent">
             Summering
           </Link>

@@ -15,6 +15,7 @@ import {
 import { customCategoriesFrom } from "@/lib/categories";
 import { formatMonth, kr } from "@/lib/format";
 import { useExpenses } from "@/lib/expenses-context";
+import { useMonthNav } from "@/lib/use-month-nav";
 import { cn } from "@/lib/cn";
 import { categoryBgClass, categoryColorVar } from "@/lib/category-colors";
 import { BackLink } from "@/components/ui/back-link";
@@ -22,6 +23,7 @@ import { BanknoteLoader } from "@/components/ui/banknote-loader";
 import { BreakdownChart, type BreakdownRow } from "@/components/ui/breakdown-chart";
 import { CalendarHeatmap } from "@/components/ui/calendar-heatmap";
 import { Card } from "@/components/ui/card";
+import { MonthNav } from "@/components/ui/month-nav";
 import { ProgressBar } from "@/components/ui/progress-bar";
 import { TrendChart } from "@/components/ui/trend-chart";
 import { WeekdayChart } from "@/components/ui/weekday-chart";
@@ -45,11 +47,11 @@ export default function SummaryPage() {
   const [grouping, setGrouping] = useState<Grouping>("category");
   const [presentation, setPresentation] = useState<Presentation>("list");
   const customCategories = useMemo(() => customCategoriesFrom(expenses), [expenses]);
-  const now = new Date();
-  const monthExpenses = expensesForMonth(expenses, now);
+  const { month, isCurrentMonth, goToPreviousMonth, goToNextMonth } = useMonthNav();
+  const monthExpenses = expensesForMonth(expenses, month);
   const total = totalOf(monthExpenses);
-  const months = monthlyTotals(expenses, now, 6);
-  const days = dailyTotalsForMonth(expenses, now);
+  const months = monthlyTotals(expenses, month, 6);
+  const days = dailyTotalsForMonth(expenses, month);
   const weekdays = weekdayTotals(expenses);
 
   const rows: BreakdownRow[] =
@@ -77,7 +79,9 @@ export default function SummaryPage() {
     <div className="flex min-h-screen flex-col px-6 pb-10 pt-8">
       <BackLink href="/" label="← Tillbaka" />
       <h1 className="mt-5 font-display text-[28px] font-extrabold tracking-tight text-foreground">Summering</h1>
-      <div className="mt-1 text-sm text-muted-2">{formatMonth(now)}</div>
+      <div className="mt-1">
+        <MonthNav month={month} canGoNext={!isCurrentMonth} onPrevious={goToPreviousMonth} onNext={goToNextMonth} />
+      </div>
       <div className="mt-4 flex items-baseline gap-2">
         <span className="font-mono text-[44px] font-bold tracking-tight tabular-nums text-foreground">
           {kr(total)}
@@ -165,7 +169,7 @@ export default function SummaryPage() {
 
               <Card className="mt-4">
                 <span className="text-xs font-semibold uppercase tracking-[0.16em] text-muted">
-                  Dag för dag · {formatMonth(now)}
+                  Dag för dag · {formatMonth(month)}
                 </span>
                 <div className="mt-3">
                   <CalendarHeatmap days={days} />
